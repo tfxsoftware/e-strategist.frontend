@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background-deep: #0d0d0d;
+  --color-background-slate: #111111;
+  
+  --color-stone-primary: #2d2d2d;
+  --color-stone-highlight: #3d3d3d;
+  --color-stone-shadow: #1a1a1a;
+  
+  --color-gold-etched: #c4a45a;
+  --color-gold-glow: #ffcc00;
+  
+  --color-arcane-green: #0e4a0e;
+  --color-arcane-glow: #33ff33;
+  
+  --color-blood-red: #4a0e0e;
+  --color-blood-glow: #ff0000;
+  
+  --color-parchment: #e0c8a0;
+  --color-parchment-dim: #7a6a4a;
+
+  --font-serif: "Cinzel", "Trajan", "EB Garamond", serif;
+  --font-mono: "Courier Prime", "JetBrains Mono", monospace;
+}
+
+:root {
+  --background: var(--color-background-deep);
+  --foreground: var(--color-parchment);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-serif);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--color-gold-etched);
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+}
+
+.technical-readout {
+  font-family: var(--font-mono);
+}
+
+.vignette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+  z-index: 50;
+}
+
+.dark-matter-texture {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3e%3cfilter id='noiseFilter'%3e%3cfeturbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3e%3c/filter%3e%3crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3e%3c/svg%3e");
+  z-index: 49;
+}
