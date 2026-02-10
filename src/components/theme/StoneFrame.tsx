@@ -1,6 +1,11 @@
 import React from 'react';
 
-const StoneFrame = ({ children, className = "" }) => {
+interface StoneFrameProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const StoneFrame = ({ children, className = "" }: StoneFrameProps) => {
   return (
     <div className={`relative p-4 bg-stone-primary border-4 ${className}`}
          style={{

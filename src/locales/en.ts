@@ -6,6 +6,16 @@ export const en = {
     about: "About",
     backToHome: "Back to Home",
     comingSoon: "Coming Soon",
+    username: "Username",
+    email: "Email",
+    password: "Password",
+    region: "Region",
+    signup: "Sign Up",
+    alreadyHaveAccount: "Already have an account?",
+    signin: "Sign In",
+    loading: "Loading...",
+    error: "An error occurred. Please try again.",
+    success: "Account created successfully!",
   },
   home: {
     title: "E-Strategist",
@@ -111,5 +121,16 @@ export const en = {
     donationsDesc: "Donations help cover server costs and allow me to dedicate more time to improving the game engine and adding new content.",
     buyMeACoffee: "Buy Me a Coffee",
     thankYou: "Thank you for playing and supporting E-Strategist.",
+  },
+  auth: {
+    signupTitle: "Join the War Council",
+    signupSubtitle: "Register your organization and begin your journey.",
+    regions: {
+      SOUTH_AMERICA: "South America",
+      NORTH_AMERICA: "North America",
+      EUROPE: "Europe",
+      CIS: "CIS",
+      ASIA: "Asia",
+    }
   }
 };

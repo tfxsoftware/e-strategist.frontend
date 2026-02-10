@@ -1,20 +1,27 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { en } from '@/locales/en';
 import { pt } from '@/locales/pt';
 
-const translations = { en, pt };
+const translations = { en, pt } as const;
+type Locale = keyof typeof translations;
 
-const I18nContext = createContext();
+interface I18nContextType {
+  locale: Locale;
+  changeLocale: (newLocale: Locale) => void;
+  t: (path: string) => string;
+}
 
-export const I18nProvider = ({ children }) => {
-  const [locale, setLocale] = useState('en');
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
+
+export const I18nProvider = ({ children }: { children: ReactNode }) => {
+  const [locale, setLocale] = useState<Locale>('en');
 
   useEffect(() => {
     const savedLocale = localStorage.getItem('e-strategist-locale');
     if (savedLocale && (savedLocale === 'en' || savedLocale === 'pt')) {
-      setLocale(savedLocale);
+      setLocale(savedLocale as Locale);
     } else {
       const browserLang = navigator.language.split('-')[0];
       if (browserLang === 'pt') {
@@ -23,27 +30,27 @@ export const I18nProvider = ({ children }) => {
     }
   }, []);
 
-  const changeLocale = (newLocale) => {
+  const changeLocale = (newLocale: Locale) => {
     setLocale(newLocale);
     localStorage.setItem('e-strategist-locale', newLocale);
   };
 
-  const t = (path) => {
+  const t = (path: string): string => {
     const keys = path.split('.');
-    let current = translations[locale];
+    let current: any = translations[locale];
     for (const key of keys) {
       if (current[key] === undefined) {
         // Fallback to English if key missing in current locale
-        let fallback = translations['en'];
+        let fallback: any = translations['en'];
         for (const fkey of keys) {
             if (fallback[fkey] === undefined) return path;
             fallback = fallback[fkey];
         }
-        return fallback;
+        return typeof fallback === 'string' ? fallback : path;
       }
       current = current[key];
     }
-    return current;
+    return typeof current === 'string' ? current : path;
   };
 
   return (

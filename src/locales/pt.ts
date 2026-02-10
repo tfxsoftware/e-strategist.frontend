@@ -6,6 +6,16 @@ export const pt = {
     about: "Sobre",
     backToHome: "Voltar ao Início",
     comingSoon: "Em Breve",
+    username: "Usuário",
+    email: "Email",
+    password: "Senha",
+    region: "Região",
+    signup: "Cadastrar",
+    alreadyHaveAccount: "Já tem uma conta?",
+    signin: "Entrar",
+    loading: "Carregando...",
+    error: "Ocorreu um erro. Por favor, tente novamente.",
+    success: "Conta criada com sucesso!",
   },
   home: {
     title: "E-Strategist",
@@ -111,5 +121,16 @@ export const pt = {
     donationsDesc: "As doações ajudam a cobrir os custos do servidor e me permitem dedicar mais tempo a melhorar o motor do jogo e adicionar novo conteúdo.",
     buyMeACoffee: "Pague-me um Café",
     thankYou: "Obrigado por jogar e apoiar o E-Strategist.",
+  },
+  auth: {
+    signupTitle: "Junte-se ao Conselho de Guerra",
+    signupSubtitle: "Registre sua organização e comece sua jornada.",
+    regions: {
+      SOUTH_AMERICA: "América do Sul",
+      NORTH_AMERICA: "América do Norte",
+      EUROPE: "Europa",
+      CIS: "CIS",
+      ASIA: "Ásia",
+    }
   }
 };

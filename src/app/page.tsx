@@ -1,6 +1,5 @@
 'use client';
 
-import StoneFrame from "@/components/theme/StoneFrame";
 import RunicButton from "@/components/theme/RunicButton";
 import GoldText from "@/components/theme/GoldText";
 import RunicDivider from "@/components/theme/RunicDivider";
