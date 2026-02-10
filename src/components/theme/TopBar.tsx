@@ -25,7 +25,11 @@ const TopBar = () => {
         <LanguageSelector />
         <a href="/learn" className="text-parchment hover:text-gold-etched transition-colors uppercase font-bold text-sm tracking-widest">{t('common.learn')}</a>
         <a href="/about" className="text-parchment hover:text-gold-etched transition-colors uppercase font-bold text-sm tracking-widest">{t('common.about')}</a>
-        <RunicButton variant="green" className="text-xs px-4 py-1">
+        <RunicButton 
+          variant="green" 
+          className="text-xs px-4 py-1"
+          onClick={() => window.location.href = '/auth/signin'}
+        >
           {t('common.playNow')}
         </RunicButton>
       </div>

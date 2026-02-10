@@ -14,6 +14,8 @@ export const en = {
     signup: "Sign Up",
     alreadyHaveAccount: "Already have an account?",
     signin: "Sign In",
+    signinSubtitle: "Enter your credentials to access the War Room.",
+    noAccount: "Don't have an account?",
     loading: "Loading...",
     error: "An error occurred. Please try again.",
     success: "Account created successfully!",
@@ -125,6 +127,7 @@ export const en = {
     thankYou: "Thank you for playing and supporting E-Strategist.",
   },
   auth: {
+    signinTitle: "Welcome Back, Commander",
     signupTitle: "Join the War Council",
     signupSubtitle: "Register your organization and begin your journey.",
     regions: {

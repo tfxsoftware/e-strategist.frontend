@@ -14,6 +14,8 @@ export const pt = {
     signup: "Cadastrar",
     alreadyHaveAccount: "Já tem uma conta?",
     signin: "Entrar",
+    signinSubtitle: "Insira suas credenciais para acessar a Sala de Guerra.",
+    noAccount: "Não tem uma conta?",
     loading: "Carregando...",
     error: "Ocorreu um erro. Por favor, tente novamente.",
     success: "Conta criada com sucesso!",
@@ -125,6 +127,7 @@ export const pt = {
     thankYou: "Obrigado por jogar e apoiar o E-Strategist.",
   },
   auth: {
+    signinTitle: "Bem-vindo de Volta, Comandante",
     signupTitle: "Junte-se ao Conselho de Guerra",
     signupSubtitle: "Registre sua organização e comece sua jornada.",
     regions: {
