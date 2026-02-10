@@ -55,7 +55,7 @@ const api = async (endpoint: string, options: ApiOptions = {}) => {
         errorData = { message: text };
       }
       
-      const error = new Error(errorData.message || 'API Request failed') as ApiError;
+      const error = new Error(errorData.message || `API Request failed with status ${response.status}`) as ApiError;
       error.status = response.status;
       error.data = errorData;
       throw error;
@@ -83,7 +83,11 @@ const api = async (endpoint: string, options: ApiOptions = {}) => {
 
     return text;
   } catch (error: any) {
-    console.error(`API Error [${method}] ${endpoint}:`, error.message);
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+      console.error(`Network Error [${method}] ${endpoint}: Check if the API server is running at ${API_URL}`);
+    } else {
+      console.error(`API Error [${method}] ${endpoint}:`, error.message);
+    }
     throw error;
   }
 };

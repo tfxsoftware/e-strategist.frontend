@@ -9,6 +9,7 @@ export const pt = {
     username: "Usuário",
     email: "Email",
     password: "Senha",
+    confirmPassword: "Confirmar Senha",
     region: "Região",
     signup: "Cadastrar",
     alreadyHaveAccount: "Já tem uma conta?",
@@ -16,6 +17,7 @@ export const pt = {
     loading: "Carregando...",
     error: "Ocorreu um erro. Por favor, tente novamente.",
     success: "Conta criada com sucesso!",
+    passwordMismatch: "As senhas não coincidem.",
   },
   home: {
     title: "E-Strategist",

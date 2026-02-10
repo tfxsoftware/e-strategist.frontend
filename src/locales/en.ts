@@ -9,6 +9,7 @@ export const en = {
     username: "Username",
     email: "Email",
     password: "Password",
+    confirmPassword: "Confirm Password",
     region: "Region",
     signup: "Sign Up",
     alreadyHaveAccount: "Already have an account?",
@@ -16,6 +17,7 @@ export const en = {
     loading: "Loading...",
     error: "An error occurred. Please try again.",
     success: "Account created successfully!",
+    passwordMismatch: "Passwords do not match.",
   },
   home: {
     title: "E-Strategist",
