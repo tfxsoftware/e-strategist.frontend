@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import RunicButton from "@/components/theme/RunicButton";
 import GoldText from "@/components/theme/GoldText";
 import RunicDivider from "@/components/theme/RunicDivider";
@@ -8,6 +9,11 @@ import { useTranslation } from "@/context/I18nContext";
 
 export default function Home() {
   const { t } = useTranslation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'));
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-black">
@@ -30,12 +36,25 @@ export default function Home() {
           <RunicDivider className="max-w-md mx-auto" />
           
           <div className="mt-8 flex flex-col items-center">
-            <p className="text-parchment-dim italic mb-6 animate-pulse">
-              {t('home.registerDesc')}
-            </p>
-            <RunicButton variant="gold" className="text-xl px-12 py-4" onClick={() => window.location.href = '/auth/signup'}>
-              {t('common.registerNow')}
-            </RunicButton>
+            {isLoggedIn ? (
+              <>
+                <p className="text-parchment-dim italic mb-6 animate-pulse">
+                  Welcome back, Commander. Your troops await.
+                </p>
+                <RunicButton variant="gold" className="text-xl px-12 py-4" onClick={() => window.location.href = '/dashboard'}>
+                  Go to Dashboard
+                </RunicButton>
+              </>
+            ) : (
+              <>
+                <p className="text-parchment-dim italic mb-6 animate-pulse">
+                  {t('home.registerDesc')}
+                </p>
+                <RunicButton variant="gold" className="text-xl px-12 py-4" onClick={() => window.location.href = '/auth/signup'}>
+                  {t('common.registerNow')}
+                </RunicButton>
+              </>
+            )}
           </div>
         </div>
       </section>

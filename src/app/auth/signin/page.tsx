@@ -41,7 +41,7 @@ export default function SigninPage() {
       
       // Redirect to home or dashboard
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }, 1500);
     } catch (error: any) {
       setStatus({ type: 'error', message: error.message || t('common.error') });

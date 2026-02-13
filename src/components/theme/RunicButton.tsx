@@ -18,14 +18,15 @@ const RunicButton = ({ children, onClick, variant = 'green', className = "", dis
     red: "bg-blood-red border-blood-glow text-blood-glow shadow-[0_0_10px_rgba(255,0,0,0.3)] hover:shadow-[0_0_20px_rgba(255,0,0,0.6)]",
     gold: "bg-stone-primary border-gold-etched text-gold-etched shadow-[0_0_10px_rgba(196,164,90,0.3)] hover:shadow-[0_0_20px_rgba(196,164,90,0.6)]"
   };
-
-  const shadowValue = variants[variant].includes('shadow-') ? variants[variant].split('shadow-')[1] : '';
+  
+  const selectedVariant = variants[variant] ?? variants.green;
+  const shadowValue = selectedVariant.includes('shadow-') ? selectedVariant.split('shadow-')[1] : '';
 
   return (
     <button 
       onClick={onClick}
       disabled={disabled}
-      className={`${baseStyles} ${variants[variant]} ${className}`}
+        className={`${baseStyles} ${selectedVariant} ${className}`}
       style={{
         boxShadow: `inset 0 0 10px rgba(0,0,0,0.5), ${shadowValue}`
       }}
