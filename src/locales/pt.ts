@@ -64,8 +64,6 @@ export const pt = {
     createRosterBody: "Dê um nome à sua nova escalação e escolha a região.",
     rosterNameLabel: "Nome da Escalação",
     regionLabel: "Região",
-    deleteRosterTitle: "Deletar escalação?",
-    deleteRosterBody: "Esta ação sombria dissolverá permanentemente a escalação e enviará seus jogadores de volta ao vazio da inatividade.",
     discoverRookie: "Descobrir Novato",
     discoverRookieLimitReached: "Você atingiu o número máximo de jogadores (10). Libere ou remova um jogador para descobrir mais novatos.",
     discoverRookieTitle: "Novato Descoberto",

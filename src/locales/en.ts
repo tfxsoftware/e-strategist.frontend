@@ -64,8 +64,6 @@ export const en = {
     createRosterBody: "Name your new roster and choose its region.",
     rosterNameLabel: "Roster Name",
     regionLabel: "Region",
-    deleteRosterTitle: "Delete roster?",
-    deleteRosterBody: "This shadow-bound action will permanently dissolve the roster and return its players to the void of inactivity.",
     discoverRookie: "Discover Rookie",
     discoverRookieLimitReached: "You have reached the maximum number of players (10). Release or remove a player to discover more rookies.",
     discoverRookieTitle: "New Rookie Discovered",

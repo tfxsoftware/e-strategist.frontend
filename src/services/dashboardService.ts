@@ -16,7 +16,4 @@ export const dashboardService = {
   createRoster: async (name: string, region: string): Promise<Roster> => {
     return await api.post('/rosters', { name, region });
   },
-  deleteRoster: async (rosterId: string): Promise<void> => {
-    await api.delete(`/rosters/${rosterId}`);
-  },
 };
