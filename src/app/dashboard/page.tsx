@@ -26,6 +26,26 @@ function getTraitClasses(traitKey: string): string {
   return TRAIT_COLORS[traitKey] ?? 'border-gold-etched/50 bg-gold-etched/10 text-gold-etched';
 }
 
+const EXPERIENCE_TABLE: number[] = [
+  0, 150, 350, 650, 1050, 1500,
+  2500, 4000, 6000, 8500, 11500, 15000,
+  21000, 29000, 40000, 55000, 75000, 100000,
+  135000, 180000, 240000, 320000, 420000, 550000, 750000,
+  1000000, 1350000, 1800000, 2400000, 3500000,
+];
+
+const MAX_LEVEL = 30;
+
+function getXpProgress(level: number, experience: number): { progress: number; xpInLevel: number; xpNeededInLevel: number } {
+  if (level >= MAX_LEVEL) return { progress: 1, xpInLevel: 0, xpNeededInLevel: 0 };
+  const xpForCurrentLevel = EXPERIENCE_TABLE[level - 1] ?? 0;
+  const xpForNextLevel = EXPERIENCE_TABLE[level] ?? xpForCurrentLevel;
+  const xpNeededInLevel = xpForNextLevel - xpForCurrentLevel;
+  const xpInLevel = Math.max(0, experience - xpForCurrentLevel);
+  const progress = xpNeededInLevel > 0 ? Math.min(1, xpInLevel / xpNeededInLevel) : 0;
+  return { progress, xpInLevel, xpNeededInLevel };
+}
+
 export default function DashboardPage() {
   const { t } = useTranslation();
   const [data, setData] = useState<DashboardResponse | null>(null);
@@ -36,6 +56,7 @@ export default function DashboardPage() {
     playerId: string;
     playerName: string;
   } | null>(null);
+  const [pendingKick, setPendingKick] = useState<{ playerId: string; playerName: string } | null>(null);
   const [showCreateRoster, setShowCreateRoster] = useState(false);
   const [newRosterName, setNewRosterName] = useState('');
   const [newRosterRegion, setNewRosterRegion] = useState('SOUTH_AMERICA');
@@ -286,6 +307,22 @@ export default function DashboardPage() {
     setDiscoveredRookie(null);
   };
 
+  const handleKickPlayer = async (playerId: string) => {
+    try {
+      await playerService.kickPlayer(playerId);
+      setData((prev) => (prev ? { ...prev, players: prev.players.filter((p) => p.id !== playerId) } : prev));
+      setPendingKick(null);
+      closePlayerModal();
+    } catch (err: any) {
+      setError(err.message || 'Failed to kick player.');
+    }
+  };
+
+  const handleConfirmKick = async () => {
+    if (!pendingKick) return;
+    await handleKickPlayer(pendingKick.playerId);
+  };
+
   const handleOpenCreateRoster = () => {
     setNewRosterName('');
     setNewRosterRegion(data?.profile.region ?? 'SOUTH_AMERICA');
@@ -398,47 +435,61 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {inactivePlayers.length ? inactivePlayers.map((player) => (
                   <StoneFrame key={player.id} className="p-4">
-                    <div
-                      className="flex gap-4 items-center cursor-pointer"
-                      draggable
-                      onDragStart={(event) =>
-                        handlePlayerDragStart(event, player.id, 'inactive')
-                      }
-                      onClick={() => handlePlayerClick(player.id)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && handlePlayerClick(player.id)}
-                    >
-                      <div className="w-16 h-16 bg-stone-900 border border-gold-etched/30 relative overflow-hidden flex-shrink-0">
-                        <img src={player.pictureUrl} alt={player.nickname} className="w-full h-full object-cover" />
-                        {player.isStar && (
-                          <div className="absolute top-0 right-0 bg-gold-etched text-black text-[8px] font-bold px-1 py-0.5">STAR</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg text-parchment truncate uppercase leading-tight">{player.nickname}</h3>
-                        <p className="text-[10px] text-parchment-dim truncate italic mb-1">{player.rosterName}</p>
-                        <div className="flex flex-wrap gap-2">
-                          <span className={`text-[9px] font-bold uppercase px-1 border ${
-                            player.condition === 'HEALTHY' ? 'border-arcane-glow/30 text-arcane-glow' : 'border-blood-glow/30 text-blood-glow'
-                          }`}>
-                            {t(`common.condition.${player.condition}`) !== `common.condition.${player.condition}` ? t(`common.condition.${player.condition}`) : player.condition}
-                          </span>
-                          {player.traits.map(trait => {
-                            const name = t(`dashboard.traits.${trait}.name`);
-                            const translated = name && !name.startsWith('dashboard.') ? name : trait.replace(/_/g, ' ');
-                            return (
-                              <span key={trait} className={`text-[9px] font-bold uppercase px-1 border ${getTraitClasses(trait)}`}>
-                                {translated}
-                              </span>
-                            );
-                          })}
+                    <div className="flex gap-4 items-center">
+                      <div
+                        className="flex flex-1 gap-4 items-center cursor-pointer min-w-0"
+                        draggable
+                        onDragStart={(event) =>
+                          handlePlayerDragStart(event, player.id, 'inactive')
+                        }
+                        onClick={() => handlePlayerClick(player.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && handlePlayerClick(player.id)}
+                      >
+                        <div className="w-16 h-16 bg-stone-900 border border-gold-etched/30 relative overflow-hidden flex-shrink-0">
+                          <img src={player.pictureUrl} alt={player.nickname} className="w-full h-full object-cover" />
+                          {player.isStar && (
+                            <div className="absolute top-0 right-0 bg-gold-etched text-black text-[8px] font-bold px-1 py-0.5">STAR</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-lg text-parchment truncate uppercase leading-tight">{player.nickname}</h3>
+                          <p className="text-[10px] text-parchment-dim truncate italic mb-1">{player.rosterName}</p>
+                          <div className="flex flex-wrap gap-2">
+                            <span className={`text-[9px] font-bold uppercase px-1 border ${
+                              player.condition === 'HEALTHY' ? 'border-arcane-glow/30 text-arcane-glow' : 'border-blood-glow/30 text-blood-glow'
+                            }`}>
+                              {t(`common.condition.${player.condition}`) !== `common.condition.${player.condition}` ? t(`common.condition.${player.condition}`) : player.condition}
+                            </span>
+                            {player.traits.map(trait => {
+                              const name = t(`dashboard.traits.${trait}.name`);
+                              const translated = name && !name.startsWith('dashboard.') ? name : trait.replace(/_/g, ' ');
+                              return (
+                                <span key={trait} className={`text-[9px] font-bold uppercase px-1 border ${getTraitClasses(trait)}`}>
+                                  {translated}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-[9px] uppercase text-gold-etched font-bold">{t('common.salary')}</p>
+                          <p className="text-xs font-bold leading-none">₼{player.salary}</p>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-[9px] uppercase text-gold-etched font-bold">{t('common.salary')}</p>
-                        <p className="text-xs font-bold leading-none">₼{player.salary}</p>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPendingKick({ playerId: player.id, playerName: player.nickname });
+                        }}
+                        className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm border border-blood-glow/50 text-blood-glow hover:bg-blood-red/20 transition-colors flex-shrink-0"
+                        aria-label={t('dashboard.kickPlayer')}
+                        title={t('dashboard.kickPlayer')}
+                      >
+                        {t('dashboard.kickButton')}
+                      </button>
                     </div>
                   </StoneFrame>
                 )) : (
@@ -605,6 +656,30 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {pendingKick && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="bg-stone-900 border border-blood-glow/60 max-w-sm w-full mx-4 p-6 shadow-2xl">
+            <GoldText as="h3" className="text-lg mb-2 uppercase tracking-tight text-blood-glow">
+              {t('dashboard.kickConfirmTitle')}
+            </GoldText>
+            <p className="text-parchment-dim text-sm mb-4">
+              {t('dashboard.kickConfirmBody')}
+            </p>
+            <p className="text-parchment text-sm mb-4">
+              <span className="font-bold">{pendingKick.playerName}</span>
+            </p>
+            <div className="flex justify-end gap-3">
+              <RunicButton variant="gold" onClick={() => setPendingKick(null)}>
+                {t('common.cancel')}
+              </RunicButton>
+              <RunicButton variant="red" onClick={handleConfirmKick}>
+                {t('dashboard.kickButton')}
+              </RunicButton>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDiscoverLimitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
           <div className="bg-stone-900 border border-amber-500/60 max-w-sm w-full mx-4 p-6 shadow-2xl">
@@ -709,6 +784,26 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+              <p className="text-[10px] uppercase text-gold-etched font-bold mb-2">{t('dashboard.roleMastery')}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+                {(['TOP', 'JUNGLE', 'MID', 'CARRY', 'SUPPORT'] as const).map((roleKey) => {
+                  const rm = viewedPlayer.roleMasteries?.[roleKey] ?? { level: 1, experience: 0 };
+                  const { progress } = getXpProgress(rm.level, rm.experience);
+                  const roleLabel = t(`dashboard.roles.${roleKey}`) !== `dashboard.roles.${roleKey}` ? t(`dashboard.roles.${roleKey}`) : roleKey;
+                  return (
+                    <div key={roleKey} className="bg-black/30 border border-stone-highlight/30 p-2 rounded-sm">
+                      <p className="text-[10px] font-bold text-parchment uppercase mb-1">{roleLabel}</p>
+                      <p className="text-xs text-parchment-dim mb-1.5">{t('dashboard.level')} {rm.level} · {rm.experience} {t('dashboard.experience')}</p>
+                      <div className="h-1.5 bg-stone-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gold-etched/80 rounded-full transition-all"
+                          style={{ width: `${progress * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
               <p className="text-[10px] uppercase text-gold-etched font-bold mb-2">{t('dashboard.heroMastery')}</p>
             </div>
             <div className="overflow-auto flex-1 min-h-0">
@@ -716,21 +811,35 @@ export default function DashboardPage() {
                 <thead className="sticky top-0 bg-stone-900 border-b border-stone-highlight/30">
                   <tr className="text-[10px] uppercase text-gold-etched tracking-wider">
                     <th className="p-2 font-bold">{t('dashboard.hero')}</th>
-                    <th className="p-2 font-bold w-20">{t('dashboard.level')}</th>
+                    <th className="p-2 font-bold w-16">{t('dashboard.level')}</th>
                     <th className="p-2 font-bold w-24">{t('dashboard.experience')}</th>
+                    <th className="p-2 font-bold min-w-[80px]">{t('dashboard.progressToNext')}</th>
                   </tr>
                 </thead>
                 <tbody className="text-parchment-dim">
                   {heroes.map((hero) => {
                     const mastery = viewedPlayer.heroMastery?.[hero.id] ?? { level: 0, experience: 0 };
+                    const effectiveLevel = Math.max(1, mastery.level);
+                    const { progress } = getXpProgress(effectiveLevel, mastery.experience);
                     return (
                       <tr key={hero.id} className="border-b border-stone-highlight/20">
                         <td className="p-2 flex items-center gap-2">
                           <img src={hero.pictureUrl} alt={hero.name} className="w-6 h-6 rounded-sm object-cover flex-shrink-0" />
                           <span className="text-parchment font-medium">{hero.name}</span>
                         </td>
-                        <td className="p-2">{mastery.level}</td>
+                        <td className="p-2">{effectiveLevel}</td>
                         <td className="p-2">{mastery.experience}</td>
+                        <td className="p-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-[60px] h-1.5 bg-stone-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gold-etched/80 rounded-full transition-all"
+                                style={{ width: `${progress * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] text-parchment-dim whitespace-nowrap">{Math.round(progress * 100)}%</span>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
