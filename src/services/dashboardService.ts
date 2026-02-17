@@ -13,4 +13,10 @@ export const dashboardService = {
   updateRoster: async (rosterId: string, payload: UpdateRosterPayload): Promise<Roster> => {
     return await api.put(`/rosters/${rosterId}`, payload);
   },
+  createRoster: async (name: string, region: string): Promise<Roster> => {
+    return await api.post('/rosters', { name, region });
+  },
+  deleteRoster: async (rosterId: string): Promise<void> => {
+    await api.delete(`/rosters/${rosterId}`);
+  },
 };

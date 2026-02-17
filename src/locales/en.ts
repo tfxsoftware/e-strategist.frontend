@@ -50,6 +50,13 @@ export const en = {
     dragHereToAdd: "Drag an inactive player here to add.",
     removeFromRosterTitle: "Remove player from roster?",
     removeFromRosterBody: "Removing players from a roster will reduce its cohesion.",
+    addRoster: "New Roster",
+    createRosterTitle: "Create New Roster",
+    createRosterBody: "Name your new roster and choose its region.",
+    rosterNameLabel: "Roster Name",
+    regionLabel: "Region",
+    deleteRosterTitle: "Delete roster?",
+    deleteRosterBody: "This shadow-bound action will permanently dissolve the roster and return its players to the void of inactivity.",
     noNextMatch: "No matches scheduled.",
     features: {
       leagues: "Leagues",

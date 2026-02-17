@@ -50,6 +50,13 @@ export const pt = {
     dragHereToAdd: "Arraste um jogador inativo para cá para adicionar.",
     removeFromRosterTitle: "Remover jogador da escalação?",
     removeFromRosterBody: "Remover jogadores de uma escalação reduz a coesão da equipe.",
+    addRoster: "Nova Escalação",
+    createRosterTitle: "Criar Nova Escalação",
+    createRosterBody: "Dê um nome à sua nova escalação e escolha a região.",
+    rosterNameLabel: "Nome da Escalação",
+    regionLabel: "Região",
+    deleteRosterTitle: "Deletar escalação?",
+    deleteRosterBody: "Esta ação sombria dissolverá permanentemente a escalação e enviará seus jogadores de volta ao vazio da inatividade.",
     noNextMatch: "Nenhuma partida agendada.",
     features: {
       leagues: "Ligas",

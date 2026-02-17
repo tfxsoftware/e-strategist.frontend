@@ -20,6 +20,13 @@ export default function DashboardPage() {
     playerId: string;
     playerName: string;
   } | null>(null);
+  const [pendingRosterDelete, setPendingRosterDelete] = useState<{
+    rosterId: string;
+    rosterName: string;
+  } | null>(null);
+  const [showCreateRoster, setShowCreateRoster] = useState(false);
+  const [newRosterName, setNewRosterName] = useState('');
+  const [newRosterRegion, setNewRosterRegion] = useState('SOUTH_AMERICA');
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -56,6 +63,8 @@ export default function DashboardPage() {
 
   const rosters = data?.rosters ?? [];
   const players = data?.players ?? [];
+
+  const regionOptions = ['SOUTH_AMERICA', 'NORTH_AMERICA', 'EUROPE', 'CIS', 'ASIA'];
 
   const validRosterNames = new Set(rosters.map((r) => r.name));
   const playersByRoster: Record<string, typeof players> = {};
@@ -194,6 +203,47 @@ export default function DashboardPage() {
     setPendingRemoval(null);
   };
 
+  const handleOpenCreateRoster = () => {
+    setNewRosterName('');
+    setNewRosterRegion(data?.profile.region ?? 'SOUTH_AMERICA');
+    setShowCreateRoster(true);
+  };
+
+  const handleCreateRoster = async () => {
+    const trimmedName = newRosterName.trim();
+    if (!trimmedName) return;
+
+    try {
+      const roster = await dashboardService.createRoster(trimmedName, newRosterRegion);
+      setData((prev) => (prev ? { ...prev, rosters: [...prev.rosters, roster] } : prev));
+      setShowCreateRoster(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create roster.');
+    }
+  };
+
+  const handleConfirmDeleteRoster = async () => {
+    if (!pendingRosterDelete) return;
+
+    try {
+      await dashboardService.deleteRoster(pendingRosterDelete.rosterId);
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          rosters: prev.rosters.filter((r) => r.id !== pendingRosterDelete.rosterId),
+          players: prev.players.map((p) =>
+            p.rosterName === pendingRosterDelete.rosterName ? { ...p, rosterName: '' } : p
+          ),
+        };
+      });
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete roster.');
+    } finally {
+      setPendingRosterDelete(null);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-black text-parchment">
       <div 
@@ -322,20 +372,47 @@ export default function DashboardPage() {
           {/* Right Column: Rosters */}
           <div className="lg:col-span-2">
             <section>
-              <GoldText as="h2" className="text-xl mb-4 uppercase flex items-center gap-2">
-                <span className="w-2 h-2 bg-gold-etched rotate-45 inline-block" />
-                {t('common.rosters')}
-              </GoldText>
+              <div className="flex items-center justify-between mb-4">
+                <GoldText as="h2" className="text-xl uppercase flex items-center gap-2">
+                  <span className="w-2 h-2 bg-gold-etched rotate-45 inline-block" />
+                  {t('common.rosters')}
+                </GoldText>
+                <RunicButton
+                  variant="gold"
+                  className="text-[10px] px-3 py-1 uppercase tracking-widest"
+                  onClick={handleOpenCreateRoster}
+                >
+                  {t('dashboard.addRoster')}
+                </RunicButton>
+              </div>
               <div className="space-y-4">
                 {rosters.length ? rosters.map(roster => (
                   <StoneFrame key={roster.id} className="p-4">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="font-bold text-parchment uppercase tracking-tight">{roster.name}</h3>
-                      <span className={`text-[10px] px-2 py-0.5 font-bold uppercase tracking-tighter border ${
-                        roster.activity === 'IDLE' ? 'border-arcane-glow/50 text-arcane-glow' : 'border-gold-etched/50 text-gold-etched'
-                      }`}>
-                        {roster.activity}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] px-2 py-0.5 font-bold uppercase tracking-tighter border ${
+                          roster.activity === 'IDLE' ? 'border-arcane-glow/50 text-arcane-glow' : 'border-gold-etched/50 text-gold-etched'
+                        }`}>
+                          {roster.activity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPendingRosterDelete({ rosterId: roster.id, rosterName: roster.name })
+                          }
+                          className="p-1 rounded-sm border border-blood-glow/50 text-blood-glow hover:bg-blood-red/20 transition-colors"
+                          aria-label="Delete roster"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            className="w-3 h-3 fill-current"
+                          >
+                            <path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-1 6h2v9H8V9zm4 0h2v9h-2V9z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div className="text-center bg-black/30 p-2 border border-stone-highlight/30">
@@ -452,6 +529,76 @@ export default function DashboardPage() {
                 {t('common.cancel')}
               </RunicButton>
               <RunicButton variant="gold" onClick={handleConfirmRemoval}>
+                {t('common.confirm')}
+              </RunicButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingRosterDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-stone-950 border border-blood-glow max-w-sm w-full mx-4 p-6 shadow-[0_0_30px_rgba(255,0,0,0.6)]">
+            <GoldText as="h3" className="text-lg mb-2 uppercase tracking-tight text-blood-glow">
+              {t('dashboard.deleteRosterTitle')}
+            </GoldText>
+            <p className="text-parchment-dim text-sm mb-4">
+              {t('dashboard.deleteRosterBody')}
+            </p>
+            <p className="text-parchment text-sm mb-4">
+              <span className="font-bold">{pendingRosterDelete.rosterName}</span>
+            </p>
+            <div className="flex justify-end gap-3">
+              <RunicButton variant="gold" onClick={() => setPendingRosterDelete(null)}>
+                {t('common.cancel')}
+              </RunicButton>
+              <RunicButton variant="red" onClick={handleConfirmDeleteRoster}>
+                {t('common.confirm')}
+              </RunicButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCreateRoster && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="bg-stone-900 border border-gold-etched max-w-md w-full mx-4 p-6 shadow-2xl space-y-4">
+            <GoldText as="h3" className="text-lg uppercase tracking-tight">
+              {t('dashboard.createRosterTitle')}
+            </GoldText>
+            <p className="text-parchment-dim text-sm">
+              {t('dashboard.createRosterBody')}
+            </p>
+            <div className="space-y-3">
+              <label className="block text-xs uppercase tracking-widest text-gold-etched mb-1">
+                {t('dashboard.rosterNameLabel')}
+                <input
+                  type="text"
+                  value={newRosterName}
+                  onChange={(e) => setNewRosterName(e.target.value)}
+                  className="mt-1 w-full bg-black/40 border border-stone-highlight/60 px-3 py-2 text-sm text-parchment outline-none focus:border-gold-etched"
+                />
+              </label>
+              <label className="block text-xs uppercase tracking-widest text-gold-etched mb-1">
+                {t('dashboard.regionLabel')}
+                <select
+                  value={newRosterRegion}
+                  onChange={(e) => setNewRosterRegion(e.target.value)}
+                  className="mt-1 w-full bg-black/40 border border-stone-highlight/60 px-3 py-2 text-sm text-parchment outline-none focus:border-gold-etched"
+                >
+                  {regionOptions.map((code) => (
+                    <option key={code} value={code}>
+                      {t(`auth.regions.${code}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <RunicButton variant="red" onClick={() => setShowCreateRoster(false)}>
+                {t('common.cancel')}
+              </RunicButton>
+              <RunicButton variant="gold" onClick={handleCreateRoster}>
                 {t('common.confirm')}
               </RunicButton>
             </div>
