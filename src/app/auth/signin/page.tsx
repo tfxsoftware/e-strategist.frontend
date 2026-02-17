@@ -8,6 +8,7 @@ import RunicDivider from "@/components/theme/RunicDivider";
 import TopBar from "@/components/theme/TopBar";
 import { useTranslation } from "@/context/I18nContext";
 import { authService } from "@/services/authService";
+import { useHeroesStore } from "@/store/heroesStore";
 
 export default function SigninPage() {
   const { t } = useTranslation();
@@ -37,6 +38,7 @@ export default function SigninPage() {
       // Store token if returned
       if (response && response.token) {
         localStorage.setItem('token', response.token);
+        useHeroesStore.getState().fetchHeroes();
       }
       
       // Redirect to home or dashboard

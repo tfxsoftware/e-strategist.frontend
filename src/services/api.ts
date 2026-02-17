@@ -38,11 +38,15 @@ const api = async (endpoint: string, options: ApiOptions = {}) => {
   try {
     const response = await fetch(`${API_URL}${endpoint}`, config);
 
-    // Handle 401 Unauthorized (optional: redirect to login)
+    // Handle 401 Unauthorized (e.g. expired/invalid JWT)
     if (response.status === 401) {
       if (typeof window !== 'undefined') {
-        // localStorage.removeItem('token');
-        // window.location.href = '/auth/signin';
+        // Clear any stale token so the user can log in again
+        localStorage.removeItem('token');
+        // Redirect to sign-in; keep it simple and global
+        if (!window.location.pathname.startsWith('/auth/signin')) {
+          window.location.href = '/auth/signin';
+        }
       }
     }
 

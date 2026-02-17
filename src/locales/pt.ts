@@ -57,6 +57,13 @@ export const pt = {
     regionLabel: "Região",
     deleteRosterTitle: "Deletar escalação?",
     deleteRosterBody: "Esta ação sombria dissolverá permanentemente a escalação e enviará seus jogadores de volta ao vazio da inatividade.",
+    discoverRookie: "Descobrir Novato",
+    discoverRookieTitle: "Novato Descoberto",
+    playerStats: "Estatísticas do Jogador",
+    heroMastery: "Maestria de Herói",
+    hero: "Herói",
+    level: "Nível",
+    experience: "XP",
     noNextMatch: "Nenhuma partida agendada.",
     features: {
       leagues: "Ligas",

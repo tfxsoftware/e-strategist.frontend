@@ -2,7 +2,10 @@
 
 import React, { DragEvent, useEffect, useState } from 'react';
 import { dashboardService } from '@/services/dashboardService';
+import { playerService } from '@/services/playerService';
 import { DashboardResponse } from '@/types/dashboard';
+import type { DiscoveredRookie, PlayerDetails } from '@/types/player';
+import { useHeroesStore } from '@/store/heroesStore';
 import StoneFrame from "@/components/theme/StoneFrame";
 import GoldText from "@/components/theme/GoldText";
 import RunicButton from "@/components/theme/RunicButton";
@@ -27,6 +30,18 @@ export default function DashboardPage() {
   const [showCreateRoster, setShowCreateRoster] = useState(false);
   const [newRosterName, setNewRosterName] = useState('');
   const [newRosterRegion, setNewRosterRegion] = useState('SOUTH_AMERICA');
+  const [discoveredRookie, setDiscoveredRookie] = useState<DiscoveredRookie | null>(null);
+  const [discoverLoading, setDiscoverLoading] = useState(false);
+  const [viewedPlayer, setViewedPlayer] = useState<PlayerDetails | null>(null);
+  const [viewedPlayerSource, setViewedPlayerSource] = useState<'discover' | 'click' | null>(null);
+  const [playerDetailsLoading, setPlayerDetailsLoading] = useState(false);
+  const fetchHeroes = useHeroesStore((s) => s.fetchHeroes);
+  const heroes = useHeroesStore((s) => s.heroes);
+  const getHeroById = useHeroesStore((s) => s.getHeroById);
+
+  useEffect(() => {
+    fetchHeroes();
+  }, [fetchHeroes]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -203,6 +218,58 @@ export default function DashboardPage() {
     setPendingRemoval(null);
   };
 
+  const handleDiscoverRookie = async () => {
+    setDiscoverLoading(true);
+    setDiscoveredRookie(null);
+    setViewedPlayer(null);
+    try {
+      const rookie = await playerService.discoverRookie();
+      setDiscoveredRookie(rookie);
+      setViewedPlayer(rookie);
+      setViewedPlayerSource('discover');
+      setData((prev) => {
+        if (!prev) return prev;
+        const newPlayer = {
+          id: rookie.id,
+          nickname: rookie.nickname,
+          pictureUrl: rookie.pictureUrl,
+          rosterName: '',
+          condition: rookie.condition,
+          traits: rookie.traits,
+          salary: rookie.salary,
+          nextSalaryPaymentDate: rookie.nextSalaryPaymentDate,
+          isStar: rookie.star,
+        };
+        return { ...prev, players: [...prev.players, newPlayer] };
+      });
+    } catch (err: any) {
+      setError(err.message || 'Failed to discover rookie.');
+    } finally {
+      setDiscoverLoading(false);
+    }
+  };
+
+  const handlePlayerClick = async (playerId: string) => {
+    setPlayerDetailsLoading(true);
+    setViewedPlayer(null);
+    setViewedPlayerSource(null);
+    try {
+      const details = await playerService.getPlayer(playerId);
+      setViewedPlayer(details);
+      setViewedPlayerSource('click');
+    } catch (err: any) {
+      setError(err.message || 'Failed to load player.');
+    } finally {
+      setPlayerDetailsLoading(false);
+    }
+  };
+
+  const closePlayerModal = () => {
+    setViewedPlayer(null);
+    setViewedPlayerSource(null);
+    setDiscoveredRookie(null);
+  };
+
   const handleOpenCreateRoster = () => {
     setNewRosterName('');
     setNewRosterRegion(data?.profile.region ?? 'SOUTH_AMERICA');
@@ -311,10 +378,20 @@ export default function DashboardPage() {
             </section>
 
             <section>
-              <GoldText as="h2" className="text-xl mb-4 uppercase flex items-center gap-2">
-                <span className="w-2 h-2 bg-gold-etched rotate-45 inline-block" />
-                {t('dashboard.inactivePlayers')}
-              </GoldText>
+              <div className="flex items-center justify-between mb-4">
+                <GoldText as="h2" className="text-xl uppercase flex items-center gap-2">
+                  <span className="w-2 h-2 bg-gold-etched rotate-45 inline-block" />
+                  {t('dashboard.inactivePlayers')}
+                </GoldText>
+                <RunicButton
+                  variant="green"
+                  className="text-[10px] px-3 py-1 uppercase tracking-widest"
+                  onClick={handleDiscoverRookie}
+                  disabled={discoverLoading}
+                >
+                  {discoverLoading ? t('common.loading') : t('dashboard.discoverRookie')}
+                </RunicButton>
+              </div>
               <div
                 className="mb-4 border-2 border-dashed border-stone-highlight/40 bg-black/20 py-6 px-3 text-center"
                 onDragOver={(event) => event.preventDefault()}
@@ -328,11 +405,15 @@ export default function DashboardPage() {
                 {inactivePlayers.length ? inactivePlayers.map((player) => (
                   <StoneFrame key={player.id} className="p-4">
                     <div
-                      className="flex gap-4 items-center cursor-move"
+                      className="flex gap-4 items-center cursor-pointer"
                       draggable
                       onDragStart={(event) =>
                         handlePlayerDragStart(event, player.id, 'inactive')
                       }
+                      onClick={() => handlePlayerClick(player.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && handlePlayerClick(player.id)}
                     >
                       <div className="w-16 h-16 bg-stone-900 border border-gold-etched/30 relative overflow-hidden flex-shrink-0">
                         <img src={player.pictureUrl} alt={player.nickname} className="w-full h-full object-cover" />
@@ -437,11 +518,15 @@ export default function DashboardPage() {
                               {rosterPlayers.map((player) => (
                                 <div
                                   key={player.id}
-                                  className="flex gap-3 items-center bg-black/30 p-2 border border-stone-highlight/30 rounded-sm cursor-move"
+                                  className="flex gap-3 items-center bg-black/30 p-2 border border-stone-highlight/30 rounded-sm cursor-pointer"
                                   draggable
                                   onDragStart={(event) =>
                                     handlePlayerDragStart(event, player.id, 'roster', roster.id)
                                   }
+                                  onClick={() => handlePlayerClick(player.id)}
+                                  role="button"
+                                  tabIndex={0}
+                                  onKeyDown={(e) => e.key === 'Enter' && handlePlayerClick(player.id)}
                                 >
                                   <div className="w-10 h-10 bg-stone-900 border border-gold-etched/30 relative overflow-hidden flex-shrink-0">
                                     <img src={player.pictureUrl} alt={player.nickname} className="w-full h-full object-cover" />
@@ -603,6 +688,69 @@ export default function DashboardPage() {
               </RunicButton>
             </div>
           </div>
+        </div>
+      )}
+
+      {viewedPlayer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-stone-900 border border-gold-etched max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-stone-highlight/30 flex-shrink-0">
+              <GoldText as="h3" className="text-lg uppercase tracking-tight mb-3">
+                {viewedPlayerSource === 'discover' ? t('dashboard.discoverRookieTitle') : t('dashboard.playerStats')}
+              </GoldText>
+              <div className="flex gap-4 items-center mb-4">
+                <div className="w-16 h-16 bg-stone-800 border border-gold-etched/30 relative overflow-hidden flex-shrink-0">
+                  <img src={viewedPlayer.pictureUrl} alt={viewedPlayer.nickname} className="w-full h-full object-cover" />
+                  {viewedPlayer.star && (
+                    <div className="absolute top-0 right-0 bg-gold-etched text-black text-[8px] font-bold px-1 py-0.5">STAR</div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-bold text-parchment uppercase">{viewedPlayer.nickname}</p>
+                  <p className="text-[10px] text-parchment-dim">{viewedPlayer.condition}</p>
+                  <p className="text-[10px] text-gold-etched">₼{viewedPlayer.salary} · {viewedPlayer.traits.join(', ')}</p>
+                </div>
+              </div>
+              <p className="text-[10px] uppercase text-gold-etched font-bold mb-2">{t('dashboard.heroMastery')}</p>
+            </div>
+            <div className="overflow-auto flex-1 min-h-0">
+              <table className="w-full text-left text-sm">
+                <thead className="sticky top-0 bg-stone-900 border-b border-stone-highlight/30">
+                  <tr className="text-[10px] uppercase text-gold-etched tracking-wider">
+                    <th className="p-2 font-bold">{t('dashboard.hero')}</th>
+                    <th className="p-2 font-bold w-20">{t('dashboard.level')}</th>
+                    <th className="p-2 font-bold w-24">{t('dashboard.experience')}</th>
+                  </tr>
+                </thead>
+                <tbody className="text-parchment-dim">
+                  {heroes.map((hero) => {
+                    const mastery = viewedPlayer.heroMastery?.[hero.id] ?? { level: 0, experience: 0 };
+                    return (
+                      <tr key={hero.id} className="border-b border-stone-highlight/20">
+                        <td className="p-2 flex items-center gap-2">
+                          <img src={hero.pictureUrl} alt={hero.name} className="w-6 h-6 rounded-sm object-cover flex-shrink-0" />
+                          <span className="text-parchment font-medium">{hero.name}</span>
+                        </td>
+                        <td className="p-2">{mastery.level}</td>
+                        <td className="p-2">{mastery.experience}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 border-t border-stone-highlight/30 flex justify-end flex-shrink-0">
+              <RunicButton variant="gold" onClick={closePlayerModal}>
+                {t('common.confirm')}
+              </RunicButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {playerDetailsLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <GoldText className="text-xl uppercase tracking-widest animate-pulse">{t('common.loading')}</GoldText>
         </div>
       )}
     </div>

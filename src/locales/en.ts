@@ -57,6 +57,13 @@ export const en = {
     regionLabel: "Region",
     deleteRosterTitle: "Delete roster?",
     deleteRosterBody: "This shadow-bound action will permanently dissolve the roster and return its players to the void of inactivity.",
+    discoverRookie: "Discover Rookie",
+    discoverRookieTitle: "New Rookie Discovered",
+    playerStats: "Player Stats",
+    heroMastery: "Hero Mastery",
+    hero: "Hero",
+    level: "Level",
+    experience: "XP",
     noNextMatch: "No matches scheduled.",
     features: {
       leagues: "Leagues",
