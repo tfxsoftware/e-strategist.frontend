@@ -6,6 +6,6 @@ export const playerService = {
     return await api.post('/players/discover/rookie');
   },
   getPlayer: async (playerId: string): Promise<PlayerDetails> => {
-    return await api.get(`/players/${playerId}`);
+    return await api.get(`/users/me/players/${playerId}`);
   },
 };

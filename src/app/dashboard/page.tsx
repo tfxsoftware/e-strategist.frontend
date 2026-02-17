@@ -13,6 +13,19 @@ import RunicDivider from "@/components/theme/RunicDivider";
 import TopBar from "@/components/theme/TopBar";
 import { useTranslation } from "@/context/I18nContext";
 
+const TRAIT_COLORS: Record<string, string> = {
+  ADAPTIVE: 'border-arcane-glow/50 bg-arcane-green/20 text-arcane-glow',
+  LEADER: 'border-amber-500/50 bg-amber-900/30 text-amber-300',
+  TEAM_PLAYER: 'border-sky-400/50 bg-sky-500/20 text-sky-300',
+  LONE_WOLF: 'border-blood-glow/50 bg-blood-red/20 text-blood-glow',
+  INSPIRING: 'border-violet-400/50 bg-violet-500/20 text-violet-300',
+  CLUTCH_FACTOR: 'border-rose-400/50 bg-rose-500/20 text-rose-300',
+};
+
+function getTraitClasses(traitKey: string): string {
+  return TRAIT_COLORS[traitKey] ?? 'border-gold-etched/50 bg-gold-etched/10 text-gold-etched';
+}
+
 export default function DashboardPage() {
   const { t } = useTranslation();
   const [data, setData] = useState<DashboardResponse | null>(null);
@@ -32,6 +45,7 @@ export default function DashboardPage() {
   const [newRosterRegion, setNewRosterRegion] = useState('SOUTH_AMERICA');
   const [discoveredRookie, setDiscoveredRookie] = useState<DiscoveredRookie | null>(null);
   const [discoverLoading, setDiscoverLoading] = useState(false);
+  const [showDiscoverLimitModal, setShowDiscoverLimitModal] = useState(false);
   const [viewedPlayer, setViewedPlayer] = useState<PlayerDetails | null>(null);
   const [viewedPlayerSource, setViewedPlayerSource] = useState<'discover' | 'click' | null>(null);
   const [playerDetailsLoading, setPlayerDetailsLoading] = useState(false);
@@ -220,6 +234,7 @@ export default function DashboardPage() {
 
   const handleDiscoverRookie = async () => {
     setDiscoverLoading(true);
+    setShowDiscoverLimitModal(false);
     setDiscoveredRookie(null);
     setViewedPlayer(null);
     try {
@@ -243,7 +258,12 @@ export default function DashboardPage() {
         return { ...prev, players: [...prev.players, newPlayer] };
       });
     } catch (err: any) {
-      setError(err.message || 'Failed to discover rookie.');
+      const isLimitError = err.status === 409 || (typeof err.message === 'string' && (err.message.includes('maximum') || err.message.includes('Cannot recruit')));
+      if (isLimitError) {
+        setShowDiscoverLimitModal(true);
+      } else {
+        setError(err.message || 'Failed to discover rookie.');
+      }
     } finally {
       setDiscoverLoading(false);
     }
@@ -424,17 +444,21 @@ export default function DashboardPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-lg text-parchment truncate uppercase leading-tight">{player.nickname}</h3>
                         <p className="text-[10px] text-parchment-dim truncate italic mb-1">{player.rosterName}</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <span className={`text-[9px] font-bold uppercase px-1 border ${
                             player.condition === 'HEALTHY' ? 'border-arcane-glow/30 text-arcane-glow' : 'border-blood-glow/30 text-blood-glow'
                           }`}>
-                            {player.condition}
+                            {t(`common.condition.${player.condition}`) !== `common.condition.${player.condition}` ? t(`common.condition.${player.condition}`) : player.condition}
                           </span>
-                          {player.traits.map(trait => (
-                            <span key={trait} className="text-[9px] font-bold uppercase px-1 border border-gold-etched/30 text-gold-etched">
-                              {trait.replace('_', ' ')}
-                            </span>
-                          ))}
+                          {player.traits.map(trait => {
+                            const name = t(`dashboard.traits.${trait}.name`);
+                            const translated = name && !name.startsWith('dashboard.') ? name : trait.replace(/_/g, ' ');
+                            return (
+                              <span key={trait} className={`text-[9px] font-bold uppercase px-1 border ${getTraitClasses(trait)}`}>
+                                {translated}
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
@@ -475,7 +499,7 @@ export default function DashboardPage() {
                         <span className={`text-[10px] px-2 py-0.5 font-bold uppercase tracking-tighter border ${
                           roster.activity === 'IDLE' ? 'border-arcane-glow/50 text-arcane-glow' : 'border-gold-etched/50 text-gold-etched'
                         }`}>
-                          {roster.activity}
+                          {t(`common.activity.${roster.activity}`) !== `common.activity.${roster.activity}` ? t(`common.activity.${roster.activity}`) : roster.activity}
                         </span>
                         <button
                           type="button"
@@ -542,13 +566,17 @@ export default function DashboardPage() {
                                       <span className={`text-[8px] font-bold uppercase px-1 border ${
                                         player.condition === 'HEALTHY' ? 'border-arcane-glow/30 text-arcane-glow' : 'border-blood-glow/30 text-blood-glow'
                                       }`}>
-                                        {player.condition}
+                                        {t(`common.condition.${player.condition}`) !== `common.condition.${player.condition}` ? t(`common.condition.${player.condition}`) : player.condition}
                                       </span>
-                                      {player.traits.map((trait) => (
-                                        <span key={trait} className="text-[8px] font-bold uppercase px-1 border border-gold-etched/30 text-gold-etched">
-                                          {trait.replace('_', ' ')}
-                                        </span>
-                                      ))}
+                                      {player.traits.map((trait) => {
+                                        const name = t(`dashboard.traits.${trait}.name`);
+                                        const translated = name && !name.startsWith('dashboard.') ? name : trait.replace(/_/g, ' ');
+                                        return (
+                                          <span key={trait} className={`text-[8px] font-bold uppercase px-1 border ${getTraitClasses(trait)}`}>
+                                            {translated}
+                                          </span>
+                                        );
+                                      })}
                                     </div>
                                   </div>
                                   <div className="text-right flex-shrink-0">
@@ -645,6 +673,24 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {showDiscoverLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="bg-stone-900 border border-amber-500/60 max-w-sm w-full mx-4 p-6 shadow-2xl">
+            <GoldText as="h3" className="text-lg mb-3 uppercase tracking-tight text-amber-400">
+              {t('dashboard.discoverRookie')}
+            </GoldText>
+            <p className="text-parchment-dim text-sm mb-6">
+              {t('dashboard.discoverRookieLimitReached')}
+            </p>
+            <div className="flex justify-end">
+              <RunicButton variant="gold" onClick={() => setShowDiscoverLimitModal(false)}>
+                {t('common.confirm')}
+              </RunicButton>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showCreateRoster && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
           <div className="bg-stone-900 border border-gold-etched max-w-md w-full mx-4 p-6 shadow-2xl space-y-4">
@@ -705,10 +751,30 @@ export default function DashboardPage() {
                     <div className="absolute top-0 right-0 bg-gold-etched text-black text-[8px] font-bold px-1 py-0.5">STAR</div>
                   )}
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="font-bold text-parchment uppercase">{viewedPlayer.nickname}</p>
-                  <p className="text-[10px] text-parchment-dim">{viewedPlayer.condition}</p>
-                  <p className="text-[10px] text-gold-etched">₼{viewedPlayer.salary} · {viewedPlayer.traits.join(', ')}</p>
+                  <p className="text-xs text-parchment-dim mt-0.5">
+                    {t(`common.condition.${viewedPlayer.condition}`) !== `common.condition.${viewedPlayer.condition}` ? t(`common.condition.${viewedPlayer.condition}`) : viewedPlayer.condition}
+                  </p>
+                  <p className="text-xs text-gold-etched mt-0.5">₼{viewedPlayer.salary}</p>
+                  <p className="text-xs uppercase text-gold-etched font-bold mt-3 mb-1.5">{t('dashboard.traitsLabel')}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {viewedPlayer.traits.map((traitKey) => {
+                      const traitName = t(`dashboard.traits.${traitKey}.name`);
+                      const traitDesc = t(`dashboard.traits.${traitKey}.description`);
+                      const isTranslated = traitName && !traitName.startsWith('dashboard.');
+                      const descTranslated = traitDesc && !traitDesc.startsWith('dashboard.');
+                      return (
+                        <span
+                          key={traitKey}
+                          title={descTranslated ? traitDesc : undefined}
+                          className={`inline-block px-3 py-1.5 text-sm font-bold uppercase tracking-wide border rounded cursor-help ${getTraitClasses(traitKey)}`}
+                        >
+                          {isTranslated ? traitName : traitKey.replace(/_/g, ' ')}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               <p className="text-[10px] uppercase text-gold-etched font-bold mb-2">{t('dashboard.heroMastery')}</p>
