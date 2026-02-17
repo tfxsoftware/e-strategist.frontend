@@ -372,13 +372,14 @@ export default function DashboardPage() {
 
         {/* Feature Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          {['leagues', 'training', 'market', 'archives', 'scouting', 'finance'].map((feature) => (
+          {['events', 'training', 'market', 'archives', 'scouting', 'finance'].map((feature) => (
             <RunicButton 
               key={feature} 
               variant="stone" 
               className="py-3 text-xs uppercase font-bold tracking-widest"
               onClick={() => {
                 if (feature === 'archives') window.location.href = '/learn';
+                if (feature === 'events') window.location.href = '/events';
               }}
             >
               {t(`dashboard.features.${feature}`)}

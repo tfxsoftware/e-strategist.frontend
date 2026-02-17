@@ -10,6 +10,9 @@ export const dashboardService = {
   getDashboardData: async (): Promise<DashboardResponse> => {
     return await api.get('/dashboard');
   },
+  getRosters: async (): Promise<Roster[]> => {
+    return await api.get('/rosters/me');
+  },
   updateRoster: async (rosterId: string, payload: UpdateRosterPayload): Promise<Roster> => {
     return await api.put(`/rosters/${rosterId}`, payload);
   },
